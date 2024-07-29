@@ -20,7 +20,7 @@ class HomePage extends StatelessWidget {
           ),
         ),
         actions: [
-          ThemeDropdown(), // Add dropdown to the AppBar actions
+          ThemeDropdown(),
         ],
       ),
       body: Container(
@@ -187,9 +187,7 @@ class HomePage extends StatelessWidget {
               ],
             ),
             SizedBox(height: 10),
-            Divider(
-                thickness: 1,
-                color: theme.dividerColor), // Use theme divider color
+            Divider(thickness: 1, color: theme.dividerColor),
             SizedBox(height: 10),
             buildDetailRow("Region", data.region, theme),
             buildDetailRow("Country", data.country, theme),
@@ -235,7 +233,7 @@ class HomePage extends StatelessWidget {
               fontWeight: FontWeight.w500,
               color: theme.brightness == Brightness.dark
                   ? Colors.white
-                  : Colors.black, // Use theme color for the label
+                  : Colors.black,
             ),
           ),
           Text(
@@ -245,7 +243,7 @@ class HomePage extends StatelessWidget {
               fontWeight: FontWeight.w400,
               color: theme.brightness == Brightness.dark
                   ? Colors.grey[300]
-                  : Colors.black54, // Use theme color for the value
+                  : Colors.black54,
             ),
           ),
         ],

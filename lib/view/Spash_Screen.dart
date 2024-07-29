@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
             const SizedBox(height: 20),
-            Text(
+            const Text(
               "How The Day???",
               style: TextStyle(
                 fontSize: 24,
