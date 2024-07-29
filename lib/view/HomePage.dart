@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:wather/model/DataModel.dart';
 
+import '../model/DataModel.dart';
 import '../provider/Search_Provider.dart';
+import '../provider/Theme_Provider.dart';
 
 class HomePage extends StatelessWidget {
   final TextEditingController searchController = TextEditingController();
@@ -18,7 +19,9 @@ class HomePage extends StatelessWidget {
             fontSize: 24,
           ),
         ),
-        elevation: 4,
+        actions: [
+          ThemeDropdown(), // Add dropdown to the AppBar actions
+        ],
       ),
       body: Container(
         padding: const EdgeInsets.all(16.0),
@@ -35,6 +38,7 @@ class HomePage extends StatelessWidget {
                       ),
                       hintText: "Search Here...",
                       prefixIcon: Icon(Icons.search),
+                      filled: true,
                       contentPadding: EdgeInsets.symmetric(vertical: 15),
                     ),
                   ),
@@ -60,6 +64,12 @@ class HomePage extends StatelessWidget {
             Expanded(
               child: Consumer<WeatherProvider>(
                 builder: (context, weatherProvider, child) {
+                  if (weatherProvider.weatherDataList.isEmpty) {
+                    return Center(
+                      child: Text("No data available"),
+                    );
+                  }
+
                   return ListView.builder(
                     itemCount: weatherProvider.weatherDataList.length,
                     itemBuilder: (context, i) {
@@ -68,7 +78,8 @@ class HomePage extends StatelessWidget {
                         onTap: () {
                           showModalBottomSheet(
                             context: context,
-                            builder: (context) => buildBottomSheet(data),
+                            builder: (context) =>
+                                buildBottomSheet(context, data),
                           );
                         },
                         child: Card(
@@ -101,8 +112,7 @@ class HomePage extends StatelessWidget {
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color:
-                                              Colors.blue, // Primary blue color
+                                          color: Colors.deepPurpleAccent,
                                         ),
                                       ),
                                       SizedBox(height: 5),
@@ -133,11 +143,13 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget buildBottomSheet(WeatherData data) {
+  Widget buildBottomSheet(BuildContext context, WeatherData data) {
+    final theme = Theme.of(context); // Get current theme
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: SingleChildScrollView(
@@ -149,31 +161,44 @@ class HomePage extends StatelessWidget {
               child: Container(
                 height: 5,
                 width: 50,
-                color: Colors.blue.shade200, // Light blue color
+                color: (theme.brightness == Brightness.dark)
+                    ? Colors.white
+                    : Colors.deepPurpleAccent,
               ),
             ),
             SizedBox(height: 20),
             Row(
               children: [
-                Icon(Icons.location_on,
-                    color: Colors.blue), // Primary blue color
+                Icon(
+                  Icons.location_on,
+                  color: Colors.deepPurpleAccent,
+                ),
                 SizedBox(width: 10),
                 Text(
                   data.locationName,
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: theme.brightness == Brightness.dark
+                        ? Colors.white
+                        : Colors.deepPurpleAccent,
+                  ),
                 ),
               ],
             ),
             SizedBox(height: 10),
-            Divider(thickness: 1, color: Colors.grey[300]),
+            Divider(
+                thickness: 1,
+                color: theme.dividerColor), // Use theme divider color
             SizedBox(height: 10),
-            buildDetailRow("Region", data.region),
-            buildDetailRow("Country", data.country),
+            buildDetailRow("Region", data.region, theme),
+            buildDetailRow("Country", data.country, theme),
             buildDetailRow(
               "Temperature",
               "${data.tempC} °C / ${data.tempF} °F",
+              theme,
             ),
-            buildDetailRow("Condition", data.conditionText),
+            buildDetailRow("Condition", data.conditionText, theme),
             SizedBox(height: 10),
             Center(
               child: Image.network(
@@ -182,12 +207,13 @@ class HomePage extends StatelessWidget {
               ),
             ),
             SizedBox(height: 10),
-            buildDetailRow("Wind", "${data.windKph} kph"),
-            buildDetailRow("Humidity", "${data.humidity}%"),
-            buildDetailRow("Cloud", "${data.cloud}%"),
+            buildDetailRow("Wind", "${data.windKph} kph", theme),
+            buildDetailRow("Humidity", "${data.humidity}%", theme),
+            buildDetailRow("Cloud", "${data.cloud}%", theme),
             buildDetailRow(
               "Feels Like",
               "${data.feelslikeC} °C / ${data.feelslikeF} °F",
+              theme,
             ),
             SizedBox(height: 20),
           ],
@@ -196,7 +222,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget buildDetailRow(String label, String value) {
+  Widget buildDetailRow(String label, String value, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -204,14 +230,47 @@ class HomePage extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+              color: theme.brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black, // Use theme color for the label
+            ),
           ),
           Text(
             value,
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w400),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w400,
+              color: theme.brightness == Brightness.dark
+                  ? Colors.grey[300]
+                  : Colors.black54, // Use theme color for the value
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class ThemeDropdown extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<ThemeData>(
+      onSelected: (theme) {
+        Provider.of<ThemeProvider>(context, listen: false).setTheme(theme);
+      },
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          value: lightTheme,
+          child: Text("Light Theme"),
+        ),
+        PopupMenuItem(
+          value: darkTheme,
+          child: Text("Dark Theme"),
+        ),
+      ],
     );
   }
 }
